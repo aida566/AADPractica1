@@ -3,7 +3,10 @@ package com.example.aidas.practica1;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import static com.example.aidas.practica1.MainActivity.TAG;
+
 public class InterfazWebView {
+
     private String usuario;
     private String pass;
 
