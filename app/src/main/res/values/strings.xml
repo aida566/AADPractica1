@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Practica1</string>
+    <string name="archivoSP">SharedPreferences</string>
+</resources>
