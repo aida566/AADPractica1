@@ -9,6 +9,7 @@ public class InterfazWebView {
 
     private String usuario;
     private String pass;
+    private Object error;
 
     public InterfazWebView() {
 
@@ -38,13 +39,23 @@ public class InterfazWebView {
         return pass;
     }
 
+    public Object getError() {
+        return error;
+    }
+
+    public void setError(Boolean error) {
+        this.error = error;
+    }
+
     @JavascriptInterface
-    public void sendData(String usuario, String pass){
+    public void sendData(String usuario, String pass, Boolean error){
 
         setUsuario(usuario);
         setPass(pass);
+        setError(error);
 
-        Log.v(TAG, usuario + " " + pass);
+        Log.v(TAG, "sendData - Usuario: " + usuario + " Pass: " + pass + " Error: " + error);
 
     }
+
 }
