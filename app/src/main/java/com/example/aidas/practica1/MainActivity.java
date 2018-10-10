@@ -24,8 +24,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        user="";
-        pass="";
+        user = "";
+        pass = "";
 
         webView = findViewById(R.id.wvPrincipal);
         webView.getSettings().setJavaScriptEnabled(true);
@@ -35,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient(){
 
-            //contador == 0: primera vez que carga la pagina
-            // contador > 0: segunda vez / datos validos en SP
+            //contador == 0: pide y almacena los datos en las SP
+            // contador > 0: inicia sesión automáticamente con los datos de las SP
             int contador = 0;
 
             @Override
@@ -44,6 +44,19 @@ public class MainActivity extends AppCompatActivity {
 
                 super.onPageFinished(view, url);
                 Log.v(TAG, "Ha cargado la página");
+
+                getShPref();
+
+                Log.v(TAG, "Desues del primer GET - Usuario: " + user + " Pass: " + pass);
+
+                //Si tenemos datos distintos de "" en las SP aumentamos el contador
+                if (user != "" && pass != "") {
+
+                    contador ++;
+
+                    Log.v(TAG, "Hay SP disponibles - Usuario: " + user + " Pass: " + pass);
+
+                }
 
                 if(contador == 0){
 
@@ -90,15 +103,9 @@ public class MainActivity extends AppCompatActivity {
 
                 }else{
 
-
                     Log.v(TAG, "contador > 0");
 
-                    //Si no es la primera vez que cargamos la pagina pasamos a cargar los valores
-                    //almacenados en las SP
-
-                    getShPref();
-
-                    // Introducimos esos valores en los campos del formulario
+                    // Introducimos esos valores de las SP en los campos del formulario
                     // Añadimos un event listener al boton para captar el elemento loginerrormessag
                     // el cual aparece cuando no se ha iniciado sesion correctamente
                     // Iniciamos sesion automáticamente con ellos haciendo click() en el boton
@@ -131,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
     //Metodo para guardar las preferencias compartidas
     public void setShPref() {
 
+        Log.v(TAG, "SET");
+
         SharedPreferences pref = getSharedPreferences(getString(R.string.archivoSP), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("user", user);
@@ -141,13 +150,13 @@ public class MainActivity extends AppCompatActivity {
 
     //Metodo para obtener los datos almacenados en las p.c.
 
-    public void getShPref() {
+    public void getShPref(){
 
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        user = pref.getString("user", "");
+        pass = pref.getString("pass","");
 
-        user = pref.getString("user", "No existe la info");
-        pass = pref.getString("pass","No existe la info");
-
+        Log.v(TAG, "GET");
 
     }
 }
