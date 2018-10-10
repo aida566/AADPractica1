@@ -43,18 +43,26 @@ public class InterfazWebView {
         return error;
     }
 
-    public void setError(Boolean error) {
+    public void setError(Object error) {
         this.error = error;
     }
 
     @JavascriptInterface
-    public void sendData(String usuario, String pass, Boolean error){
+    public void sendData(String usuario, String pass){
 
         setUsuario(usuario);
         setPass(pass);
+
+        Log.v(TAG, "sendData - Usuario: " + usuario + " Pass: " + pass);
+
+    }
+
+    @JavascriptInterface
+    public void sendData(Object error){
+
         setError(error);
 
-        Log.v(TAG, "sendData - Usuario: " + usuario + " Pass: " + pass + " Error: " + error);
+        Log.v(TAG, " Error: " + error);
 
     }
 

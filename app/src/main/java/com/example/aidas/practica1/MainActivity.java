@@ -35,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient(){
 
-            //contador = 0: primera vez que carga la pagina / no hay datos en SP / los datos en SP son incorrectos
-            //contador > 0: segunda vez / datos validos en SP
+            //contador == 0: primera vez que carga la pagina
+            // contador > 0: segunda vez / datos validos en SP
             int contador = 0;
 
             @Override
@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if(contador == 0){
 
+                    Log.v(TAG, "contador == 0");
+
                     //Si es la primera vez que carga la página:
 
                     /*Establecemos un listener en el boton para que al hacer login captemos los datos
@@ -54,70 +56,73 @@ public class MainActivity extends AppCompatActivity {
                     Ademas intentamos coger el elemento loginerrormessag, que solo aparece cuando los
                     datos introducidos son erroneos
                     */
-                    final String javaScript = "" +
+                    String javaScript = "" +
                             "   var boton = document.getElementById('loginbtn');" +
                             "   boton.addEventListener('click', function() {" +
                             "    var nombre = document.getElementById('username').value;" +
                             "    var clave  = document.getElementById('password').value;" +
-                            "    var error  = document.getElementById('loginerrormessag');" +
-                            "    puente.sendData(nombre, clave, error);" +
+                            "    puente.sendData(nombre, clave);" +
                             "});";
 
                     webView.loadUrl("javascript: " + javaScript);
 
-                    //Obtenemos los datos que ha almacenado previamente la interfaz.
+                    //Obtenemos los datos que ha almacenado la interfaz.
                     user = iaw.getUsuario();
                     pass = iaw.getPass();
-                    error = iaw.getError();
 
                     //Si los valores son distintos de cadena nula los guardamos en las SP,
                     //y aumentamos el contador
-                    if(user != "" && pass !=""){
+                    if(user != null && pass !=null){
+
+                        Log.v(TAG, "contador == 0, user y pass != \"\" ");
 
                         setShPref();
 
                         Log.v(TAG, "Usuario guardado en SP: " + user);
                         Log.v(TAG, "Pass guardada en SP: " + pass);
 
-
                         contador++;
 
-                    } //En caso de ser cadena nula dejamos contador = 0 y no guardamos los datos.
+                    }
+
+                    //En caso de ser cadena nula dejamos contador = 0 y no guardamos los datos.
 
 
                 }else{
 
-                    //Si no es la primera vez que cargamos la pagina pasamos a comprobar si
-                    //tenemos valores almacenados en las SP
+
+                    Log.v(TAG, "contador > 0");
+
+                    //Si no es la primera vez que cargamos la pagina pasamos a cargar los valores
+                    //almacenados en las SP
 
                     getShPref();
 
-                    if(user != "" && pass != ""){
+                    // Introducimos esos valores en los campos del formulario
+                    // Añadimos un event listener al boton para captar el elemento loginerrormessag
+                    // el cual aparece cuando no se ha iniciado sesion correctamente
+                    // Iniciamos sesion automáticamente con ellos haciendo click() en el boton
 
-                        //Si es así introducimos esos valores en los campos del formulario
-                        //e iniciamos sesion automáticamente con ellos
+                    String javaScript = "" +
+                            "    document.getElementById('username').value = \""+ user + "\";" +
+                            "    document.getElementById('password').value = \""+ pass + "\";" +
+                            "    boton.addEventListener('click', function() {" +
+                            "    var error  = document.getElementById('loginerrormessag');" +
+                            "    puente.sendData(error);" + "});" +
+                            "    document.getElementById('loginbtn').click();";
 
-                        final String javaScript = "" +
-                                "    document.getElementById('username').value = \""+ user + "\";" +
-                                "    document.getElementById('password').value = \""+ pass + "\";" +
-                                "    document.getElementById('loginbtn').click();";
+                    webView.loadUrl("javascript: " + javaScript);
 
-                        webView.loadUrl("javascript: " + javaScript);
+                    // error == null: se ha iniciado sesión correctamente, los datos son buenos
+                    // error != null: el objeto existe, ha fallado el inicio
+
+                    if(error != null){
+
+                        contador = 0;
 
                     }
 
-
-
-
                 }
-
-
-
-
-
-
-                //Mostramos la url a la que estamos accediendo.
-                Log.v(TAG, "final: " + webView.getUrl());
 
             }
         });
