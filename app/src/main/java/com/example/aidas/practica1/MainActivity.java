@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.v(TAG, "contador > 0");
 
+                    getShPref();
+
                     // Introducimos esos valores de las SP en los campos del formulario
                     // Añadimos un event listener al boton para captar el elemento loginerrormessag
                     // el cual aparece cuando no se ha iniciado sesion correctamente
@@ -138,14 +140,14 @@ public class MainActivity extends AppCompatActivity {
     //Metodo para guardar las preferencias compartidas
     public void setShPref() {
 
-        Log.v(TAG, "SET");
-
         SharedPreferences pref = getSharedPreferences(getString(R.string.archivoSP), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("user", user);
         editor.putString("pass", pass);
 
         editor.apply();
+
+        Log.v(TAG, "SET");
     }
 
     //Metodo para obtener los datos almacenados en las p.c.
@@ -153,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
     public void getShPref(){
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        user = pref.getString("user", "");
-        pass = pref.getString("pass","");
+        user = pref.getString("user", "Default");
+        pass = pref.getString("pass","Default");
 
         Log.v(TAG, "GET");
 
