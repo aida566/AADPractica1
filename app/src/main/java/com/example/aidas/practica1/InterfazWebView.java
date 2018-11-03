@@ -10,6 +10,7 @@ public class InterfazWebView {
     private String usuario;
     private String pass;
     private Object error;
+    private String errors;
 
     public InterfazWebView() {
 
@@ -66,4 +67,14 @@ public class InterfazWebView {
 
     }
 
+    @JavascriptInterface
+    public void setErrors(String e){
+
+        this.errors = e;
+
+    }
+
+    public String getErrors() {
+        return errors;
+    }
 }

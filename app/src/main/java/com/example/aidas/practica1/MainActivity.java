@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private String user;
     private String pass;
-    private Object error;
+    private Boolean spCorrectos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,12 +34,12 @@ public class MainActivity extends AppCompatActivity {
         final InterfazWebView iaw = new InterfazWebView();
         webView.addJavascriptInterface(iaw, "puente");
 
-        webView.loadUrl("http://www.juntadeandalucia.es/averroes/centros-tic/18700098/moodle2/login/index.php");
+        final String urlMoodle = "http://www.juntadeandalucia.es/averroes/centros-tic/18700098/moodle2/login/index.php";
+
+        webView.loadUrl(urlMoodle);
 
         webView.setWebViewClient(new WebViewClient(){
 
-            //contador == 0: pide y almacena los datos en las SP
-            // contador > 0: inicia sesión automáticamente con los datos de las SP
             int contador = 0;
 
             @Override
@@ -48,29 +48,30 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
                 Log.v(TAG, "Ha cargado la página");
 
+
+                /*Si tenemos datos en las SP y son correctos aumentamos el contador para iniciar sesión automaticamete.
+                * contador == 0: no hay SP, o hay SP incorrectas
+                * contador >=1: hay SP correctas*/
+
                 getShPref();
 
-                Log.v(TAG, "Desues del primer GET - Usuario: " + user + " Pass: " + pass);
-
-                //Si tenemos datos distintos de "" en las SP aumentamos el contador
                 if (user != "" && pass != "") {
 
-                    contador ++;
+                    if(getShPrefError().equalsIgnoreCase("true")){
 
-                    Log.v(TAG, "Hay SP disponibles - Usuario: " + user + " Pass: " + pass);
+                        contador++;
+                        Log.v(TAG, "Hay datos correctos. Contador: " + contador);
 
+                    }else{
+
+                        spCorrectos = false;
+                        Log.v(TAG, "Hay datos INcorrectos. Contador: " + contador);
+                    }
                 }
 
                 if(contador == 0){
-
-                    Log.v(TAG, "Entra en if contador == 0");
-
-                    //Si es la primera vez que carga la página:
-
                     /*Establecemos un listener en el boton para que al hacer login captemos los datos
-                    introducidos.
-                    Ademas intentamos coger el elemento loginerrormessag, que solo aparece cuando los
-                    datos introducidos son erroneos
+                    introducidos mediante la interfaz.
                     */
                     String javaScript = "" +
                             "   var boton = document.getElementById('loginbtn');" +
@@ -86,90 +87,81 @@ public class MainActivity extends AppCompatActivity {
                     user = iaw.getUsuario();
                     pass = iaw.getPass();
 
-                    Log.v(TAG, "------------Datos cogidos: user: " + user + " pass: " +  pass + "-----------------");
-
-                    //Si los valores son distintos de cadena nula los guardamos en las SP,
-                    //y aumentamos el contador
+                    /*Si los valores son distintos de null los guardamos en las SP,
+                    *y aumentamos el contador */
                     if(user != null && pass != null){
 
-                        Log.v(TAG, "contador == 0, user y pass != \"\" ");
+                        /*Si no se ha inicializado y por tanto es la primera vez que se ejectura:
+                         * guardamos en SP independientemente de si son datos correctos o no */
 
-                        setShPref();
+                        if(spCorrectos == null){
 
-                        Log.v(TAG, "Usuario guardado en SP: " + user);
-                        Log.v(TAG, "Pass guardada en SP: " + pass);
+                            setShPref();
+                            Log.v(TAG, "spCorrectos es null: " + user + " - " + pass);
 
-                        contador++;
+                        }else{
+
+                            Log.v(TAG, "spCorrectos NO ES null: " + user + " - " + pass);
+
+                            /*Por el contrario si no es la primera vez guardaremos en SP solo si los datos
+                            son correctos. */
+
+                            if(url.equalsIgnoreCase(urlMoodle)){
+
+                                setShPrefError("false"); //Los datos guardados son incorrectos.
+                                spCorrectos = false;
+
+                                contador = 0;
+
+                            }else{
+                                setShPref();
+                                Log.v(TAG, "Usuario y pass guardadas en SP: " + user + " - " + pass);
+
+                                setShPrefError("true"); //Los datos guardados son correctos.
+                                spCorrectos = true;
+                                contador++;
+                            }
+
+                        }
 
                     }
 
-                    //En caso de ser cadena nula dejamos contador = 0 y no guardamos los datos.
-
-
                 }else{
-
-                    Log.v(TAG, "contador > 0");
 
                     getShPref();
 
-                    // Introducimos esos valores de las SP en los campos del formulario
-                    // Añadimos un event listener al boton para captar el elemento loginerrormessag
-                    // el cual aparece cuando no se ha iniciado sesion correctamente
-                    // Iniciamos sesion automáticamente con ellos haciendo click() en el boton
+                    /* Introducimos esos valores de las SP en los campos del formulario
+                    * Añadimos un event listener al boton para captar el elemento loginerrormessag
+                    * el cual aparece cuando no se ha iniciado sesion correctamente */
 
                     String javaScript = "" +
                             "    document.getElementById('username').value = \""+ user + "\";" +
                             "    document.getElementById('password').value = \""+ pass + "\";" +
-                            "    boton.addEventListener('click', function() {" +
-                            "    var error  = document.getElementById('loginerrormessag');" +
-                            "    puente.sendData(error);" + "});" +
-                            /*
-                            "   function eventFire(el, etype){ " +
-                            "       if (el.fireEvent) { " +
-                            "           el.fireEvent('on' + etype);" +
-                            "       } else { " +
-                            "           var evObj = document.createEvent('Events');" +
-                            "           evObj.initEvent(etype, true, false);" +
-                            "           el.dispatchEvent(evObj);" +
-                            "       }" +
-                            "   }" +
-                            "   eventFire(document.getElementById('loginbtn'), 'click');";
-                            */
-
-                            /*
-                            "    var boton = document.getElementById('loginbtn');" +
-                            "    boton.click();";
-                            */
-
-                            /*
-                            "   document.login['loginbtn'].submit()";
-                            */
-
-                            /*
-                            "    var formulario = document.getElementById('login');" +
-                            "    formulario.submit();";
-                            */
-
-                            "   function formSubmit() {" +
-                            "       document.getElementById('loginbtn').click();" +
-                            "};" +
-                            "formSubmit();";
+                            "    document.getElementById('login').submit();" +
+                            "    var e = document.getElementById('loginerrormessage');" +
+                            "    puente.setErrors(e);";
 
                     webView.loadUrl("javascript: " + javaScript);
+
+                    Log.v(TAG, "Valor de errors: " + iaw.getError());
 
                     // error == null: se ha iniciado sesión correctamente, los datos son buenos
                     // error != null: el objeto existe, ha fallado el inicio
 
-                    if(error != null){
+                    if(iaw.getError() != null){
 
                         Log.v(TAG, "Ha fallado el inicio");
 
                         contador = 0;
 
+                    }else{
+
+                        Log.v(TAG, "NO hay error");
                     }
 
+                    Log.v(TAG, "web view: " + webView.getUrl());
+                    Log.v(TAG, "URL: " + urlMoodle);
                 }
-
             }
         });
     }
@@ -185,6 +177,20 @@ public class MainActivity extends AppCompatActivity {
         editor.commit();
 
         Log.v(TAG, "SET");
+    }
+
+    public void setShPrefError(String e){
+        SharedPreferences pref = getSharedPreferences(getString(R.string.archivoSP), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("error", e);
+
+        editor.commit();
+    }
+    public String getShPrefError(){
+        SharedPreferences pref = getSharedPreferences(getString(R.string.archivoSP), Context.MODE_PRIVATE);
+        String error = pref.getString("error", "");
+
+        return error;
     }
 
     //Metodo para obtener los datos almacenados en las p.c.
