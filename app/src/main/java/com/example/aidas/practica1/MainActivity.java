@@ -28,9 +28,12 @@ public class MainActivity extends AppCompatActivity {
         pass = "";
 
         webView = findViewById(R.id.wvPrincipal);
+
         webView.getSettings().setJavaScriptEnabled(true);
+
         final InterfazWebView iaw = new InterfazWebView();
         webView.addJavascriptInterface(iaw, "puente");
+
         webView.loadUrl("http://www.juntadeandalucia.es/averroes/centros-tic/18700098/moodle2/login/index.php");
 
         webView.setWebViewClient(new WebViewClient(){
@@ -60,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if(contador == 0){
 
-                    Log.v(TAG, "contador == 0");
+                    Log.v(TAG, "Entra en if contador == 0");
 
                     //Si es la primera vez que carga la página:
 
@@ -83,9 +86,11 @@ public class MainActivity extends AppCompatActivity {
                     user = iaw.getUsuario();
                     pass = iaw.getPass();
 
+                    Log.v(TAG, "------------Datos cogidos: user: " + user + " pass: " +  pass + "-----------------");
+
                     //Si los valores son distintos de cadena nula los guardamos en las SP,
                     //y aumentamos el contador
-                    if(user != null && pass !=null){
+                    if(user != null && pass != null){
 
                         Log.v(TAG, "contador == 0, user y pass != \"\" ");
 
@@ -118,7 +123,37 @@ public class MainActivity extends AppCompatActivity {
                             "    boton.addEventListener('click', function() {" +
                             "    var error  = document.getElementById('loginerrormessag');" +
                             "    puente.sendData(error);" + "});" +
-                            "    document.getElementById('loginbtn').click();";
+                            /*
+                            "   function eventFire(el, etype){ " +
+                            "       if (el.fireEvent) { " +
+                            "           el.fireEvent('on' + etype);" +
+                            "       } else { " +
+                            "           var evObj = document.createEvent('Events');" +
+                            "           evObj.initEvent(etype, true, false);" +
+                            "           el.dispatchEvent(evObj);" +
+                            "       }" +
+                            "   }" +
+                            "   eventFire(document.getElementById('loginbtn'), 'click');";
+                            */
+
+                            /*
+                            "    var boton = document.getElementById('loginbtn');" +
+                            "    boton.click();";
+                            */
+
+                            /*
+                            "   document.login['loginbtn'].submit()";
+                            */
+
+                            /*
+                            "    var formulario = document.getElementById('login');" +
+                            "    formulario.submit();";
+                            */
+
+                            "   function formSubmit() {" +
+                            "       document.getElementById('loginbtn').click();" +
+                            "};" +
+                            "formSubmit();";
 
                     webView.loadUrl("javascript: " + javaScript);
 
@@ -126,6 +161,8 @@ public class MainActivity extends AppCompatActivity {
                     // error != null: el objeto existe, ha fallado el inicio
 
                     if(error != null){
+
+                        Log.v(TAG, "Ha fallado el inicio");
 
                         contador = 0;
 
@@ -145,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("user", user);
         editor.putString("pass", pass);
 
-        editor.apply();
+        editor.commit();
 
         Log.v(TAG, "SET");
     }
@@ -154,9 +191,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void getShPref(){
 
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        user = pref.getString("user", "Default");
-        pass = pref.getString("pass","Default");
+        SharedPreferences pref = getSharedPreferences(getString(R.string.archivoSP), Context.MODE_PRIVATE);
+        user = pref.getString("user", "");
+        pass = pref.getString("pass","");
+
+        Log.v(TAG, "usuario en getShPrf: " + user + " pass: " + pass);
 
         Log.v(TAG, "GET");
 
